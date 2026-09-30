@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0867bd">
+  <title>Fitwell | Coach dashboard</title>
+  <style>
+    :root {
+      --blue: #123b5d;
+      --blue-dark: #0c2d47;
+      --blue-soft: #e6eef5;
+      --ink: #171717;
+      --muted: #65748a;
+      --panel: #fff;
+      --page: #eef1f4;
+      --line: #d9e0e7;
+      --shadow: 0 2px 8px rgba(27, 49, 70, .11);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--page);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--page); }
+    button { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #f3b51b; outline-offset: 2px; }
+    .app { min-height: 100vh; display: flex; }
+
+    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 4; width: 245px; display: flex; flex-direction: column; background: var(--blue); color: white; }
+    .brand { height: 75px; display: grid; place-items: center; background: #0d304b; border-bottom: 4px solid #09283f; }
+    .brand-name { color: #fff; font-size: 39px; line-height: 1; font-weight: 900; font-style: italic; letter-spacing: -2.8px; text-shadow: 1px 1px 0 rgba(0,0,0,.12); }
+    .nav { padding-top: 7px; }
+    .nav-link { width: 100%; min-height: 58px; display: flex; align-items: center; gap: 15px; padding: 0 19px; border: 0; border-left: 4px solid transparent; background: transparent; color: #fff; text-align: left; cursor: pointer; font-size: 17px; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,.1); border-left-color: #b9d5e7; }
+    .nav-icon { width: 23px; flex: 0 0 23px; display: grid; place-items: center; font-size: 22px; line-height: 1; }
+    .library-link { justify-content: space-between; padding-right: 20px; }
+    .library-link span { display: flex; align-items: center; gap: 15px; }
+    .library-arrow { font-size: 26px; }
+    .profile-card { margin: auto 7px 8px; min-height: 51px; display: flex; align-items: center; gap: 8px; padding: 7px 11px; border: 1px solid rgba(255,255,255,.5); border-radius: 9px; background: rgba(255,255,255,.14); }
+    .profile-avatar { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; background: white; color: var(--blue); font-size: 17px; font-weight: 700; }
+    .profile-card span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; }
+
+    .main { width: calc(100% - 245px); margin-left: 245px; padding-top: 62px; }
+    .topbar { position: fixed; top: 0; right: 0; left: 245px; z-index: 3; height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 17px; background: #fff; box-shadow: var(--shadow); }
+    .top-actions { display: flex; align-items: center; gap: 7px; }
+    .top-button { height: 39px; border: 0; border-radius: 4px; color: white; padding: 0 14px; cursor: pointer; font-size: 15px; }
+    .trainer-button { background: #397fae; }
+    .trial-button { background: #268a58; font-weight: 700; }
+    .utility { display: flex; align-items: center; gap: 27px; }
+    .utility-link { border: 0; background: transparent; color: #161616; cursor: pointer; font-size: 14px; font-weight: 700; }
+    .utility-icon { position: relative; border: 0; background: transparent; cursor: pointer; font-size: 22px; }
+    .notification { position: absolute; top: -11px; right: -9px; min-width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #e93a58; color: #fff; font-size: 12px; font-weight: 700; }
+    .account { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #c7c5cc; color: white; font-size: 20px; }
+
+    .content { max-width: 1310px; margin: 0 auto; padding: 50px 17px 28px; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(300px, 1.03fr) minmax(320px, 1fr) minmax(300px, 1fr); gap: 14px; align-items: stretch; }
+    .card { min-width: 0; background: var(--panel); border: 1px solid #d9dee5; border-radius: 6px; box-shadow: var(--shadow); padding: 18px; }
+    .card h2 { margin: 6px 0 0; font-size: 18px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-actions { display: flex; gap: 7px; }
+    .action-button { border: 0; border-radius: 4px; background: #397fae; color: white; padding: 8px 13px; box-shadow: 0 2px 4px rgba(0,0,0,.16); cursor: pointer; font-size: 13px; font-weight: 700; letter-spacing: .2px; }
+    .action-button:hover { background: #286c99; }
+    .metric-card { min-height: 540px; }
+    .chart { position: relative; height: 364px; margin-top: 16px; padding: 17px 0 10px 32px; background: #f4f6fc; border-radius: 5px; overflow: hidden; }
+    .chart-lines { position: absolute; inset: 17px 0 11px 32px; display: grid; grid-template-rows: repeat(10, 1fr); }
+    .chart-lines i { border-top: 1px solid #818181; }
+    .y-labels { position: absolute; inset: 15px auto 10px 4px; display: flex; flex-direction: column; justify-content: space-between; color: #202020; font-size: 12px; }
+    .chart-axis { position: absolute; inset: auto 0 10px 32px; border-top: 1px solid #555; }
+    .checkin-list { display: grid; gap: 9px; margin-top: 18px; }
+    .checkin { min-height: 93px; display: grid; grid-template-columns: 1fr auto; gap: 5px; padding: 11px 12px; border-radius: 7px; background: #f4f6fc; }
+    .checkin-date { font-size: 16px; }
+    .checkin-date span { float: right; }
+    .published { display: inline-block; padding: 6px 13px; border-radius: 20px; background: #d6eddf; color: #277c4d; font-size: 12px; }
+    .checkin-meta { grid-column: 1 / -1; align-self: end; color: #acb4c9; font-size: 14px; }
+    .checkin-menu { align-self: end; border: 0; background: transparent; font-size: 23px; cursor: pointer; }
+
+    .assignments { min-height: 540px; display: grid; align-content: start; gap: 32px; }
+    .assignment { min-height: 58px; }
+    .assignment h3 { margin: 0; font-size: 18px; }
+    .assignment-copy { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 25px; text-align: center; }
+    .assignment-copy span { flex: 1; font-size: 15px; }
+    .assignment-copy .card-actions { flex: 0 0 auto; }
+    .right-card { min-height: 540px; }
+    .right-card .assignment-copy { margin-top: 25px; }
+    .bottom-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .bottom-row .card { min-height: 410px; }
+    .empty-space { min-height: 235px; display: grid; place-items: center; color: #171717; font-size: 15px; text-align: center; }
+    .programs-page { display: none; }
+    .programs-page.visible { display: block; }
+    .programs-title { margin: 0 0 55px; font-size: 38px; line-height: 1; font-weight: 700; letter-spacing: -.8px; }
+    .programs-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 65px; }
+    .program-item { min-width: 0; }
+    .program-heading { min-height: 47px; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    .program-heading h2 { margin: 0; font-size: 26px; font-weight: 700; }
+    .program-heading-actions { display: flex; align-items: center; gap: 7px; }
+    .program-view-button, .program-add-button { border: 0; border-radius: 5px; background: #2f8ee5; color: white; padding: 9px 18px; box-shadow: 0 2px 5px rgba(0,0,0,.2); cursor: pointer; font-size: 18px; font-weight: 700; white-space: nowrap; }
+    .program-add-button { display: inline-flex; align-items: center; gap: 7px; }
+    .program-view-button:hover, .program-add-button:hover { background: #1478ce; }
+    .program-empty { min-height: 69px; display: grid; place-items: center; margin-top: 15px; padding: 14px; border-radius: 6px; background: #fff; box-shadow: 0 1px 2px rgba(20,40,60,.04); font-size: 20px; text-align: center; }
+
+    .mobile-bar { display: none; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 8; transform: translateY(90px); opacity: 0; padding: 12px 16px; border-radius: 5px; background: #1b2e42; color: white; box-shadow: var(--shadow); transition: transform .2s ease, opacity .2s ease; font-size: 13px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 1060px) {
+      .sidebar { width: 205px; }
+      .main { width: calc(100% - 205px); margin-left: 205px; }
+      .topbar { left: 205px; }
+      .nav-link { font-size: 15px; padding-inline: 13px; }
+      .dashboard-grid { grid-template-columns: 1fr 1fr; }
+      .right-card { grid-column: 1 / -1; min-height: 300px; }
+      .right-card .empty-space { min-height: 130px; }
+      .bottom-row { grid-column: 1 / -1; }
+    }
+    @media (max-width: 760px) {
+      .app { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; }
+      .brand { height: 59px; justify-content: flex-start; padding: 0 18px; }
+      .brand-name { font-size: 31px; }
+      .nav { display: flex; overflow-x: auto; padding: 0; background: var(--blue); }
+      .nav-link { min-width: max-content; min-height: 48px; justify-content: center; padding: 0 13px; border-left: 0; border-bottom: 3px solid transparent; font-size: 12px; gap: 6px; }
+      .nav-link.active { border-bottom-color: #b9d5e7; }
+      .nav-link:nth-child(n+5) { display: none; }
+      .nav-icon { width: auto; flex: 0 0 auto; font-size: 17px; }
+      .library-link { display: none; }
+      .profile-card { display: none; }
+      .main { width: 100%; margin: 0; padding-top: 62px; }
+      .topbar { left: 0; height: 62px; padding-inline: 10px; }
+      .trainer-button { display: none; }
+      .top-actions { gap: 5px; }
+      .trial-button { font-size: 12px; padding-inline: 9px; }
+      .utility { gap: 12px; }
+      .utility-link { font-size: 12px; }
+      .content { padding: 18px 10px 74px; }
+      .programs-title { margin-bottom: 28px; font-size: 30px; }
+      .programs-grid { grid-template-columns: 1fr; row-gap: 25px; }
+      .program-heading h2 { font-size: 20px; }
+      .program-view-button, .program-add-button { padding: 8px 12px; font-size: 14px; }
+      .program-empty { min-height: 60px; font-size: 15px; }
+      .dashboard-grid { grid-template-columns: 1fr; gap: 10px; }
+      .card { padding: 14px; }
+      .metric-card, .assignments, .right-card { min-height: auto; }
+      .chart { height: 250px; }
+      .checkin { min-height: 77px; }
+      .assignment-copy { margin-top: 15px; }
+      .bottom-row { grid-column: auto; grid-template-columns: 1fr; gap: 10px; }
+      .bottom-row .card { min-height: 230px; }
+      .empty-space { min-height: 105px; }
+      .mobile-bar { position: fixed; inset: auto 0 0; z-index: 7; display: flex; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -2px 9px rgba(0,0,0,.12); }
+      .mobile-bar button { border: 0; background: transparent; color: #66758a; font-size: 10px; display: grid; gap: 3px; justify-items: center; }
+      .mobile-bar button.active { color: var(--blue); font-weight: 700; }
+      .mobile-bar strong { font-size: 18px; line-height: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Fitwell navigation">
+      <div class="brand"><div class="brand-name">Fitwell</div></div>
+      <nav class="nav">
+        <button class="nav-link active" type="button"><span class="nav-icon">▦</span>Dashboard</button>
+        <button class="nav-link" type="button"><span class="nav-icon">▥</span>Check Ins</button>
+        <button class="nav-link" type="button"><span class="nav-icon">▣</span>Calendar</button>
+        <button class="nav-link" type="button"><span class="nav-icon">♡</span>My Tracking</button>
+        <button class="nav-link" type="button" data-view="programs"><span class="nav-icon">≡</span>My Programs</button>
+        <button class="nav-link" type="button"><span class="nav-icon">▧</span>Notes</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-actions"></div>
+        <div class="utility"><button class="utility-link" type="button">❔ &nbsp;Support</button><button class="utility-icon" type="button" aria-label="Notifications">♟<span class="notification">39</span></button><button class="utility-icon" type="button" aria-label="Messages">●</button><span class="account" aria-label="Account">●</span></div>
+      </header>
+
+      <section class="content" aria-label="Fitwell dashboard">
+        <div class="dashboard-grid">
+          <section class="card metric-card" aria-labelledby="check-ins-title">
+            <div class="card-header"><h2 id="check-ins-title">Check Ins</h2><div class="card-actions"><button class="action-button" type="button" data-toast="Check-in created">Create</button><button class="action-button" type="button" data-toast="Showing all check-ins">View All</button></div></div>
+            <div class="chart" aria-label="Check-in score chart"><div class="chart-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="y-labels" aria-hidden="true"><span>1.0</span><span>0.9</span><span>0.8</span><span>0.7</span><span>0.6</span><span>0.5</span><span>0.4</span><span>0.3</span><span>0.2</span><span>0.1</span><span>0</span></div><div class="chart-axis"></div></div>
+            <div class="checkin-list"><article class="checkin"><div class="checkin-date">Jan 21, 2026</div><div><span class="published">Published</span> &nbsp;1/21/26</div><div class="checkin-meta">Weight: 57.5kg <span>Bodyfat: %</span></div><button class="checkin-menu" type="button" data-toast="Check-in options">⋮</button></article><article class="checkin"><div class="checkin-date">Sept, 24, 2025</div><div><span class="published">Published</span> &nbsp;9/24/25</div><div class="checkin-meta">Weight: 61.4kg <span>Bodyfat: %</span></div><button class="checkin-menu" type="button" data-toast="Check-in options">⋮</button></article></div>
+          </section>
+
+          <section class="card assignments" aria-label="Programs and plans">
+            <div class="assignment"><div class="card-header"><h3>Meal Plan</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Meal plan creator opened">Create</button><button class="action-button" type="button" data-toast="Showing meal plans">View All</button></div></div><div class="assignment-copy"><span>No Meal Plans Assigned</span></div></div>
+            <div class="assignment"><div class="card-header"><h3>Supplement Protocol</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Supplement creator opened">Create</button><button class="action-button" type="button" data-toast="Showing supplements">View All</button></div></div><div class="assignment-copy"><span>No Supplement Protocols Assigned</span></div></div>
+            <div class="assignment"><div class="card-header"><h3>Training Program</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Training program creator opened">Create</button><button class="action-button" type="button" data-toast="Showing training programs">View All</button></div></div><div class="assignment-copy"><span>No Training Programs Assigned</span></div></div>
+            <div class="assignment"><div class="card-header"><h3>Cardio Program</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Cardio creator opened">Create</button><button class="action-button" type="button" data-toast="Showing cardio programs">View All</button></div></div><div class="assignment-copy"><span>No Cardio Programs Assigned</span></div></div>
+          </section>
+
+          <section class="card right-card" aria-label="Goals and notes">
+            <div class="assignment"><div class="card-header"><h3>Active / Upcoming Goal</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Showing goals">View All</button></div></div><div class="empty-space">No Goals Assigned</div></div>
+            <div class="assignment"><div class="card-header"><h3>Habits</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Showing habits">View All</button></div></div><div class="empty-space">No Habits Assigned</div></div>
+            <div class="assignment"><div class="card-header"><h3>Client Notes</h3><div class="card-actions"><button class="action-button" type="button" data-toast="Note creator opened">Create</button><button class="action-button" type="button" data-toast="Showing notes">View All</button></div></div><div class="empty-space">No Notes Assigned</div></div>
+          </section>
+
+          <div class="bottom-row">
+            <section class="card" aria-label="Tracking summary"><div class="card-header"><h3>My Tracking</h3><button class="action-button" type="button" data-toast="Tracking opened">View All</button></div><div class="empty-space">Your tracking insights will appear here</div></section>
+            <section class="card" aria-label="Programs summary"><div class="card-header"><h3>My Programs</h3><button class="action-button" type="button" data-toast="Programs opened">View All</button></div><div class="empty-space">No programs assigned</div></section>
+            <section class="card" aria-label="Notes summary"><div class="card-header"><h3>Notes</h3><button class="action-button" type="button" data-toast="Notes opened">View All</button></div><div class="empty-space">No notes assigned</div></section>
+          </div>
+        </div>
+        <section class="programs-page" aria-label="My Programs">
+          <h1 class="programs-title">My Programs</h1>
+          <div class="programs-grid">
+            <article class="program-item"><div class="program-heading"><h2>Meal Plan</h2><div class="program-heading-actions"><button class="program-view-button" type="button" data-toast="Showing meal plans">View All</button></div></div><div class="program-empty">No Meal Plans Assigned</div></article>
+            <article class="program-item"><div class="program-heading"><h2>Supplement Protocol</h2><div class="program-heading-actions"><button class="program-view-button" type="button" data-toast="Showing supplement protocols">View All</button></div></div><div class="program-empty">No Supplement Protocols Assigned</div></article>
+            <article class="program-item"><div class="program-heading"><h2>Training Program</h2><div class="program-heading-actions"><button class="program-add-button" type="button" data-toast="Training program creator opened"><span aria-hidden="true">⊕</span>Add</button><button class="program-view-button" type="button" data-toast="Showing training programs">View All</button></div></div><div class="program-empty">No Training Programs Assigned</div></article>
+            <article class="program-item"><div class="program-heading"><h2>Cardio Program</h2><div class="program-heading-actions"><button class="program-view-button" type="button" data-toast="Showing cardio programs">View All</button></div></div><div class="program-empty">No Cardio Programs Assigned</div></article>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-bar" aria-label="Mobile navigation"><button class="active" type="button"><strong>▦</strong>Dashboard</button><button type="button"><strong>▥</strong>Check Ins</button><button type="button"><strong>▣</strong>Calendar</button><button type="button"><strong>◌</strong>More</button></nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+    document.querySelectorAll('[data-toast]').forEach(button => button.addEventListener('click', () => showToast(button.dataset.toast)));
+    document.querySelectorAll('.nav-link, .mobile-bar button').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('.nav-link').forEach(item => item.classList.toggle('active', item === button));
+      document.querySelectorAll('.mobile-bar button').forEach(item => item.classList.toggle('active', item === button));
+      const dashboard = document.querySelector('.dashboard-grid');
+      const programs = document.querySelector('.programs-page');
+      const isPrograms = button.dataset.view === 'programs';
+      if (dashboard && programs && (button.classList.contains('nav-link') || isPrograms)) {
+        dashboard.style.display = isPrograms ? 'none' : '';
+        programs.classList.toggle('visible', isPrograms);
+      }
+      showToast(`${button.textContent.trim()} opened`);
+    }));
+  </script>
+</body>
+</html>
